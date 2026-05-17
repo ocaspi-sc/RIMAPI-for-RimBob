@@ -20,7 +20,7 @@ namespace RIMAPI.Controllers
         public async Task GetItemImage(HttpListenerContext context)
         {
             var name = RequestParser.GetStringParameter(context, "name");
-            var result = _imageService.GetItemImage(name);
+            var result = await _imageService.GetItemImage(name);
             await context.SendJsonResponse(result);
         }
 
@@ -28,7 +28,7 @@ namespace RIMAPI.Controllers
         public async Task GetTerrainImage(HttpListenerContext context)
         {
             var name = RequestParser.GetStringParameter(context, "name");
-            var result = _imageService.GetTerrainImage(name);
+            var result = await _imageService.GetTerrainImage(name);
             await context.SendJsonResponse(result);
         }
 

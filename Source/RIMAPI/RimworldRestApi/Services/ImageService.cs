@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RIMAPI.Core;
 using RIMAPI.Helpers;
 using RIMAPI.Models;
@@ -11,15 +12,15 @@ namespace RIMAPI.Services
     {
         public ImageService() { }
 
-        public ApiResult<ImageDto> GetItemImage(string name)
+        public async Task<ApiResult<ImageDto>> GetItemImage(string name)
         {
-            var result = TextureHelper.GetItemImageByName(name);
+            var result = await TextureHelper.GetItemImageByNameAsync(name);
             return ApiResult<ImageDto>.Ok(result);
         }
 
-        public ApiResult<ImageDto> GetTerrainImage(string name)
+        public async Task<ApiResult<ImageDto>> GetTerrainImage(string name)
         {
-            var result = TextureHelper.GetTerrainImageByName(name);
+            var result = await TextureHelper.GetTerrainImageByNameAsync(name);
             return ApiResult<ImageDto>.Ok(result);
         }
 

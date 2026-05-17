@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using RIMAPI.Core;
 using RIMAPI.Models;
 using RimWorld;
@@ -20,7 +21,7 @@ namespace RIMAPI.Helpers
             return image;
         }
 
-        public static ImageDto GetTerrainImageByName(string terrainName)
+        public static async Task<ImageDto> GetTerrainImageByNameAsync(string terrainName)
         {
             ImageDto image = new ImageDto();
             try
@@ -73,10 +74,7 @@ namespace RIMAPI.Helpers
                 }
                 else
                 {
-                    TextureExportManager.Instance.QueueExtract(terrainName, texture, (base64Result) =>
-                    {
-                        image.ImageBase64 = base64Result;
-                    });
+                    image.ImageBase64 = await TextureExportManager.Instance.QueueExtractAsync(terrainName, texture);
                     image.Result = "success";
                 }
             }
@@ -87,7 +85,7 @@ namespace RIMAPI.Helpers
             return image;
         }
 
-        public static ImageDto GetItemImageByName(string thingName)
+        public static async Task<ImageDto> GetItemImageByNameAsync(string thingName)
         {
             ImageDto image = new ImageDto();
             try
@@ -148,10 +146,7 @@ namespace RIMAPI.Helpers
                 }
                 else
                 {
-                    TextureExportManager.Instance.QueueExtract(thingDef?.defName, texture, (base64Result) =>
-                    {
-                        image.ImageBase64 = base64Result;
-                    });
+                    image.ImageBase64 = await TextureExportManager.Instance.QueueExtractAsync(thingDef?.defName, texture);
                     image.Result = "success";
                 }
             }

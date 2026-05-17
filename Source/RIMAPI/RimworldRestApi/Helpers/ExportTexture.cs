@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Verse;
 
 public class TextureExportManager : MonoBehaviour
@@ -15,6 +16,21 @@ public class TextureExportManager : MonoBehaviour
         public string Label;
         public Texture2D Texture;
         public Action<string> OnComplete;
+        public TaskCompletionSource<string> Completion;
+    }
+
+    public Task<string> QueueExtractAsync(string label, Texture2D texture)
+    {
+        if (texture == null)
+        {
+            TaskCompletionSource<string> missingTexture = new TaskCompletionSource<string>();
+            missingTexture.SetException(new InvalidOperationException($"No texture available for {label}."));
+            return missingTexture.Task;
+        }
+
+        TaskCompletionSource<string> completion = new TaskCompletionSource<string>();
+        EnqueueExtract(label, texture, null, completion);
+        return completion.Task;
     }
 
     void Awake()
@@ -24,11 +40,21 @@ public class TextureExportManager : MonoBehaviour
 
     public void QueueExtract(string label, Texture2D texture, Action<string> callback)
     {
+        EnqueueExtract(label, texture, callback, null);
+    }
+
+    private void EnqueueExtract(
+        string label,
+        Texture2D texture,
+        Action<string> callback,
+        TaskCompletionSource<string> completion)
+    {
         exportQueue.Enqueue(new ExportRequest
         {
             Label = label,
             Texture = texture,
-            OnComplete = callback
+            OnComplete = callback,
+            Completion = completion
         });
 
         // Self-Healing: If queue has items but we aren't processing, start.
@@ -61,6 +87,7 @@ public class TextureExportManager : MonoBehaviour
             // Objects can be destroyed/unloaded while waiting in the queue.
             if (req.Texture == null)
             {
+                req.Completion?.SetException(new InvalidOperationException($"No texture available for {req.Label}."));
                 continue; // Skip this item, move to the next
             }
 
@@ -70,10 +97,12 @@ public class TextureExportManager : MonoBehaviour
             {
                 string base64 = TextureToBase64(req.Texture);
                 req.OnComplete?.Invoke(base64);
+                req.Completion?.SetResult(base64);
             }
             catch (Exception e)
             {
                 Log.Warning($"[TextureExport] Failed to export {req.Label}: {e.Message}");
+                req.Completion?.SetException(e);
             }
 
             yield return null;
