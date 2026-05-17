@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>RIMAPI</name>
+  <name>RIMAPI for RimBob</name>
   <description>RIMAPI is a mod that give you an REST API useable for your current game</description>
-  <packageId>RedEyeDev.RIMAPI</packageId>
+  <packageId>Ocaspi.RIMAPI.RimBob</packageId>
   <author>RedEyeDev</author>
   <modVersion>1.9.0</modVersion>
   <url>https://ilyachichkov.github.io/RIMAPI/index.html</url>

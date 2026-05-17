@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Manifest>
-    <identifier>redeyedev.rimapi</identifier>
+    <identifier>ocaspi.rimapi.rimbob</identifier>
     <version>1.9.0</version>
     <manifestUri>
-        https://raw.githubusercontent.com/IlyaChichkov/RIMAPI/refs/heads/main/About/Manifest.xml</manifestUri>
-    <downloadUri>https://github.com/IlyaChichkov/RIMAPI/releases</downloadUri>
+        https://raw.githubusercontent.com/ocaspi-sc/RIMAPI-for-RimBob/refs/heads/main/About/Manifest.xml</manifestUri>
+    <downloadUri>https://github.com/ocaspi-sc/RIMAPI-for-RimBob/releases</downloadUri>
 </Manifest>
