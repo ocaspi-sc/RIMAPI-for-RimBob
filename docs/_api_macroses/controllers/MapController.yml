@@ -402,14 +402,16 @@ desc: |-
                 "def_name": "Plant_TreeOak",
                 "label": "oak tree",
                 "position": { "x": 45, "y": 0, "z": 88 },
-                "growth": 0.85
+                "growth_progress": 0.85,
+                "is_harvestable": true
             },
             {
                 "thing_id": 1025,
                 "def_name": "Plant_Potato",
                 "label": "potato plant",
                 "position": { "x": 50, "y": 0, "z": 50 },
-                "growth": 0.45
+                "growth_progress": 0.45,
+                "is_harvestable": false
             }
         ],
         "errors": [],

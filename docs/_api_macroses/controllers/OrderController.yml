@@ -27,11 +27,59 @@ desc: The **Order Controller** is for issuing commands to pawns.
         "point_b": {"x": 250, "y": 0, "z": 250}
     }
     ```
+
+    RimBob-compatible harvest requests may also use:
+    ```json
+    {
+        "map_id": 0,
+        "designation": "Harvest",
+        "rect": {"x1": 10, "z1": 20, "x2": 12, "z2": 22}
+    }
+    ```
   response: |-
     **Response:**
     ```json
     {
         "success": true,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-12-31T11:04:27.9729153Z"
+    }
+    ```
+  method: POST
+/api/v1/order/unforbid:
+  desc: |-
+    Safely clear the forbidden flag on explicit haulable thing IDs on one map.
+    This endpoint does not destroy items and rejects missing, non-map, non-haulable,
+    empty, or oversized target batches.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url 'http://localhost:8765/api/v1/order/unforbid'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "thing_ids": ["12345", "12346"]
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "requested": 2,
+            "matched": 2,
+            "changed": 1,
+            "already_allowed": 1,
+            "missing": 0,
+            "non_map_targets": 0,
+            "non_item_targets": 0
+        },
         "errors": [],
         "warnings": [],
         "timestamp": "2025-12-31T11:04:27.9729153Z"

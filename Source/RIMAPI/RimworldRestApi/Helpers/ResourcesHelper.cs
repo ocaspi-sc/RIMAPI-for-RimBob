@@ -374,6 +374,12 @@ namespace RIMAPI.Helpers
                 IsForbidden = thing.IsForbidden(Faction.OfPlayer),
             };
 
+            if (thing is Plant plant)
+            {
+                dto.GrowthProgress = plant.Growth;
+                dto.IsHarvestable = plant.HarvestableNow;
+            }
+
             dto.Quality = -1;
             if (thing.TryGetQuality(out QualityCategory quality))
             {

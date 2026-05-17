@@ -22,6 +22,8 @@ namespace RIMAPI.Models
         public int HitPoints { get; set; }
         public int MaxHitPoints { get; set; }
         public string Description { get; set; }
+        public float? GrowthProgress { get; set; }
+        public bool? IsHarvestable { get; set; }
 
         public static ThingDto ToDto(Thing thing)
         {
@@ -48,6 +50,12 @@ namespace RIMAPI.Models
                 StuffDefName = thing.Stuff?.defName,
                 Description = thing.DescriptionDetailed
             };
+
+            if (thing is Plant plant)
+            {
+                dto.GrowthProgress = plant.Growth;
+                dto.IsHarvestable = plant.HarvestableNow;
+            }
 
             // Safely get Quality
             var qualityComp = thing.TryGetComp<CompQuality>();

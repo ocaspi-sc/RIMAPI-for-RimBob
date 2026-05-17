@@ -8,5 +8,6 @@ namespace RIMAPI.Services
     public interface IOrderService
     {
         ApiResult DesignateArea(DesignateRequestDto request);
+        ApiResult<UnforbidThingsResponseDto> UnforbidThings(UnforbidThingsRequestDto request);
     }
 }

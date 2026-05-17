@@ -23,5 +23,13 @@ namespace RIMAPI.Controllers
             var result = _orderService.DesignateArea(body);
             await context.SendJsonResponse(result);
         }
+
+        [Post("/api/v1/order/unforbid")]
+        public async Task UnforbidThings(HttpListenerContext context)
+        {
+            var body = await context.Request.ReadBodyAsync<UnforbidThingsRequestDto>();
+            var result = _orderService.UnforbidThings(body);
+            await context.SendJsonResponse(result);
+        }
     }
 }
