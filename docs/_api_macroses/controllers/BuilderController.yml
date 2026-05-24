@@ -93,6 +93,211 @@ desc: |-
     }
     ```
   method: POST
+/api/v1/builder/blueprint/validate:
+  desc: |-
+    Dry-runs one caller-supplied blueprint placement. This endpoint does not mutate the map.
+    It returns placement validity, occupied cells, construction cost, work, and whether the
+    same pending build or completed building already exists.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url http://localhost:8765/api/v1/builder/blueprint/validate \
+    --header 'content-type: application/json' \
+    --data '{
+        "map_id": 0,
+        "def_name": "Wall",
+        "stuff_def_name": "WoodLog",
+        "cell": {"x": 80, "z": 80},
+        "rotation": 0
+    }'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "def_name": "Wall",
+        "stuff_def_name": "WoodLog",
+        "cell": {"x": 80, "z": 80},
+        "rotation": 0
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "can_place": true,
+            "reason": "",
+            "def_type": "thing",
+            "occupies_cells": [{"x": 80, "z": 80}],
+            "cost": [{"def_name": "WoodLog", "count": 5}],
+            "work_to_build": 135,
+            "already_blueprinted": false,
+            "already_built": false
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
+/api/v1/builder/blueprint/place:
+  desc: |-
+    Places one safe blueprint after server-side validation. The endpoint returns `rejected`
+    when placement is invalid, `already_present` when the same pending build or completed
+    building already exists, and `placed` when a new blueprint is created. It never destroys
+    obstacles. Set `allowed` to false to create the blueprint in a disallowed state.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url http://localhost:8765/api/v1/builder/blueprint/place \
+    --header 'content-type: application/json' \
+    --data '{
+        "map_id": 0,
+        "def_name": "Wall",
+        "stuff_def_name": "WoodLog",
+        "cell": {"x": 80, "z": 80},
+        "rotation": 0,
+        "allowed": false
+    }'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "def_name": "Wall",
+        "stuff_def_name": "WoodLog",
+        "cell": {"x": 80, "z": 80},
+        "rotation": 0,
+        "allowed": false
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "status": "placed",
+            "placed": true,
+            "thing_id": 12345,
+            "reason": "",
+            "validate": {
+                "can_place": true,
+                "reason": "",
+                "def_type": "thing",
+                "occupies_cells": [{"x": 80, "z": 80}],
+                "cost": [{"def_name": "WoodLog", "count": 5}],
+                "work_to_build": 135,
+                "already_blueprinted": false,
+                "already_built": false
+            }
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
+/api/v1/builder/blueprint/allowed-state:
+  desc: |-
+    Allows or disallows explicit pending blueprint and frame ids. Only `Blueprint_Build` and
+    `Frame` targets on the requested map are accepted; completed buildings, items, pawns,
+    wrong-map ids, and missing ids are rejected. There is no rect-wide mode.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url http://localhost:8765/api/v1/builder/blueprint/allowed-state \
+    --header 'content-type: application/json' \
+    --data '{
+        "map_id": 0,
+        "thing_ids": ["12345"],
+        "allowed": false
+    }'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "thing_ids": ["12345"],
+        "allowed": false
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "requested": 1,
+            "matched": 1,
+            "changed": 1,
+            "already_in_state": 0,
+            "cancelled": 0,
+            "already_gone": 0,
+            "missing": 0,
+            "non_map_targets": 0,
+            "non_pending_build_targets": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
+/api/v1/builder/blueprint/cancel:
+  desc: |-
+    Cancels explicit pending blueprint and frame ids using RimWorld's native pending-build
+    cancel behavior. Only `Blueprint_Build` and `Frame` targets on the requested map are
+    accepted. There is no rect-wide cancel and no "cancel all" mode.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url http://localhost:8765/api/v1/builder/blueprint/cancel \
+    --header 'content-type: application/json' \
+    --data '{
+        "map_id": 0,
+        "thing_ids": ["12345"]
+    }'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "thing_ids": ["12345"]
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "requested": 1,
+            "matched": 1,
+            "changed": 0,
+            "already_in_state": 0,
+            "cancelled": 1,
+            "already_gone": 0,
+            "missing": 0,
+            "non_map_targets": 0,
+            "non_pending_build_targets": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
 /api/v1/builder/blueprint:
   desc: |-
     Places blueprints for a copied area, allowing colonists to construct

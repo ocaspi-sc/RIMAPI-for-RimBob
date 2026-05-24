@@ -8,5 +8,9 @@ namespace RIMAPI.Services
         ApiResult<BlueprintDto> CopyArea(CopyAreaRequestDto request);
         ApiResult PasteArea(PasteAreaRequestDto request);
         ApiResult PlaceBlueprints(PasteAreaRequestDto request);
+        ApiResult<BlueprintValidateResultDto> ValidateBlueprint(BlueprintValidateRequestDto request);
+        ApiResult<BlueprintPlaceResultDto> PlaceBlueprint(BlueprintPlaceRequestDto request);
+        ApiResult<BlueprintBatchResponseDto> SetBlueprintAllowedState(BlueprintAllowedStateRequestDto request);
+        ApiResult<BlueprintBatchResponseDto> CancelBlueprints(BlueprintThingIdsRequestDto request);
     }
 }

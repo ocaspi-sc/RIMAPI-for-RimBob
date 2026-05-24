@@ -19,6 +19,8 @@ namespace RIMAPI.Services
         ApiResult<MapZonesDto> GetMapZones(int mapId);
         ApiResult<MapRoomsDto> GetMapRooms(int mapId);
         ApiResult<List<BuildingDto>> GetMapBuildings(int mapId);
+        ApiResult<List<PendingBuildDto>> GetMapBlueprints(int mapId);
+        ApiResult<List<ConstructionBacklogGroupDto>> GetConstructionBacklog(int mapId);
         ApiResult<MapTerrainDto> GetMapTerrain(int mapId);
         ApiResult<List<ThingDto>> GetMapThingsInRadius(int mapId, int x, int z, int radius);
         ApiResult SetWeather(int mapId, string defName);

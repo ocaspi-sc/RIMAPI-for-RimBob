@@ -38,5 +38,41 @@ namespace RIMAPI.Controllers
             var result = _builderService.PlaceBlueprints(body);
             await context.SendJsonResponse(result);
         }
+
+        [Post("/api/v1/builder/blueprint/validate")]
+        [EndpointMetadata("Validate one blueprint placement without mutating the map")]
+        public async Task ValidateBlueprint(HttpListenerContext context)
+        {
+            var body = await context.Request.ReadBodyAsync<BlueprintValidateRequestDto>();
+            var result = _builderService.ValidateBlueprint(body);
+            await context.SendJsonResponse(result);
+        }
+
+        [Post("/api/v1/builder/blueprint/place")]
+        [EndpointMetadata("Place one validated blueprint without destroying obstacles")]
+        public async Task PlaceBlueprint(HttpListenerContext context)
+        {
+            var body = await context.Request.ReadBodyAsync<BlueprintPlaceRequestDto>();
+            var result = _builderService.PlaceBlueprint(body);
+            await context.SendJsonResponse(result);
+        }
+
+        [Post("/api/v1/builder/blueprint/allowed-state")]
+        [EndpointMetadata("Allow or disallow explicit pending blueprint and frame ids")]
+        public async Task SetBlueprintAllowedState(HttpListenerContext context)
+        {
+            var body = await context.Request.ReadBodyAsync<BlueprintAllowedStateRequestDto>();
+            var result = _builderService.SetBlueprintAllowedState(body);
+            await context.SendJsonResponse(result);
+        }
+
+        [Post("/api/v1/builder/blueprint/cancel")]
+        [EndpointMetadata("Cancel explicit pending blueprint and frame ids")]
+        public async Task CancelBlueprints(HttpListenerContext context)
+        {
+            var body = await context.Request.ReadBodyAsync<BlueprintThingIdsRequestDto>();
+            var result = _builderService.CancelBlueprints(body);
+            await context.SendJsonResponse(result);
+        }
     }
 }

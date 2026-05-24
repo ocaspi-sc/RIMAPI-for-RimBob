@@ -65,6 +65,16 @@ namespace RIMAPI.Services
             return ApiResult<List<BuildingDto>>.Ok(result);
         }
 
+        public ApiResult<List<PendingBuildDto>> GetMapBlueprints(int mapId)
+        {
+            return BuilderService.GetPendingBuilds(mapId);
+        }
+
+        public ApiResult<List<ConstructionBacklogGroupDto>> GetConstructionBacklog(int mapId)
+        {
+            return BuilderService.GetConstructionBacklog(mapId);
+        }
+
         public ApiResult<MapCreaturesSummaryDto> GetMapCreaturesSummary(int mapId)
         {
             var result = MapHelper.GetMapCreaturesSummary(mapId);

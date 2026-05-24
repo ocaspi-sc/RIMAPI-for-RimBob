@@ -1175,3 +1175,81 @@ desc: |-
     ```
   method: POST
   csharp_method: CreateGrowingZone
+/api/v1/map/blueprints:
+  desc: |-
+    Reads all pending build work on the requested map. The result includes both
+    `Blueprint_Build` and `Frame` rows and excludes completed buildings.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request GET \
+    --url 'http://localhost:8765/api/v1/map/blueprints?map_id=0'
+    ```
+  request: ''
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": [
+            {
+                "id": 12345,
+                "kind": "blueprint",
+                "def_name": "Wall",
+                "def_type": "thing",
+                "stuff_def_name": "WoodLog",
+                "cell": {"x": 80, "z": 80},
+                "rotation": 0,
+                "allowed": false,
+                "is_forbidden": true,
+                "work_left": 135,
+                "hp": null,
+                "cost": [{"def_name": "WoodLog", "count": 5}]
+            }
+        ],
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: GET
+/api/v1/map/construction/backlog:
+  desc: |-
+    Summarizes pending blueprint and frame construction backlog for Construction/Willie.
+    Groups are keyed by `kind`, `def_name`, `stuff_def_name`, and `allowed`, with cost,
+    material availability, material gaps, sample cells, and affected ids.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request GET \
+    --url 'http://localhost:8765/api/v1/map/construction/backlog?map_id=0'
+    ```
+  request: ''
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": [
+            {
+                "kind": "blueprint",
+                "def_name": "Wall",
+                "stuff_def_name": "WoodLog",
+                "allowed": false,
+                "count": 2,
+                "thing_ids": [12345, 12346],
+                "sample_cells": [{"x": 80, "z": 80}, {"x": 81, "z": 80}],
+                "total_work_left": 270,
+                "cost": [{"def_name": "WoodLog", "count": 10}],
+                "materials_available": [{"def_name": "WoodLog", "required": 10, "available": 4, "missing": 6}],
+                "materials_missing": [{"def_name": "WoodLog", "required": 10, "available": 4, "missing": 6}],
+                "blocked_count": 2,
+                "disallowed_count": 2
+            }
+        ],
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-24T12:00:00.0000000Z"
+    }
+    ```
+  method: GET

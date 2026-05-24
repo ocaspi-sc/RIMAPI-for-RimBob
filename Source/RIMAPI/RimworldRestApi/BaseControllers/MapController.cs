@@ -176,6 +176,24 @@ namespace RIMAPI.Controllers
             await context.SendJsonResponse(result);
         }
 
+        [Get("/api/v1/map/blueprints")]
+        [EndpointMetadata("List pending blueprints and frames on the map")]
+        public async Task GetMapBlueprints(HttpListenerContext context)
+        {
+            var mapId = RequestParser.GetMapId(context);
+            var result = _mapService.GetMapBlueprints(mapId);
+            await context.SendJsonResponse(result);
+        }
+
+        [Get("/api/v1/map/construction/backlog")]
+        [EndpointMetadata("Summarize pending blueprint and frame construction backlog")]
+        public async Task GetConstructionBacklog(HttpListenerContext context)
+        {
+            var mapId = RequestParser.GetMapId(context);
+            var result = _mapService.GetConstructionBacklog(mapId);
+            await context.SendJsonResponse(result);
+        }
+
         [Get("/api/v1/map/building/info")]
         [EndpointMetadata("Get building info")]
         public async Task GetBuildingInfo(HttpListenerContext context)
