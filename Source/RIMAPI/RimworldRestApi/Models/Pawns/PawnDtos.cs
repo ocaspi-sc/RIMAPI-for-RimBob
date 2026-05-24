@@ -25,6 +25,7 @@ namespace RIMAPI.Models
         public float DrugsDesire { get; set; }
         public float SurroundingBeauty { get; set; }
         public float FreshAir { get; set; }
+        public List<MoodThoughtDto> MoodThoughts { get; set; }
         public WorkInfoDto WorkInfo { get; set; }
         public PoliciesInfoDto PoliciesInfo { get; set; }
         public MedicalInfoDto MedicalInfo { get; set; }

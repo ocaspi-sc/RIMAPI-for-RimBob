@@ -408,6 +408,11 @@ namespace RIMAPI.Helpers
                         IsDoorway = s.IsDoorway,
                         ContainedBedsIds = s.ContainedBeds.Select(b => b.thingIDNumber).ToList(),
                         OpenRoofCount = s.OpenRoofCount,
+                        Impressiveness = ReadRoomStat(s, RoomStatDefOf.Impressiveness),
+                        Beauty = ReadRoomStat(s, RoomStatDefOf.Beauty),
+                        Cleanliness = ReadRoomStat(s, RoomStatDefOf.Cleanliness),
+                        Space = ReadRoomStat(s, RoomStatDefOf.Space),
+                        Wealth = ReadRoomStat(s, RoomStatDefOf.Wealth),
                     })
                     .ToList(),
             };
@@ -427,11 +432,29 @@ namespace RIMAPI.Helpers
                         IsDoorway = s.IsDoorway,
                         ContainedBedsIds = s.ContainedBeds.Select(b => b.thingIDNumber).ToList(),
                         OpenRoofCount = s.OpenRoofCount,
+                        Impressiveness = ReadRoomStat(s, RoomStatDefOf.Impressiveness),
+                        Beauty = ReadRoomStat(s, RoomStatDefOf.Beauty),
+                        Cleanliness = ReadRoomStat(s, RoomStatDefOf.Cleanliness),
+                        Space = ReadRoomStat(s, RoomStatDefOf.Space),
+                        Wealth = ReadRoomStat(s, RoomStatDefOf.Wealth),
                     })
                     .ToList(),
             };
 #endif
             return mapRooms;
+        }
+
+        private static float? ReadRoomStat(Room room, RoomStatDef stat)
+        {
+            try
+            {
+                return room.GetStat(stat);
+            }
+            catch (Exception ex)
+            {
+                Core.LogApi.Warning($"Failed to read room stat {stat?.defName}: {ex.Message}");
+                return null;
+            }
         }
 
         public static MapTerrainDto GetMapTerrain(int mapId)

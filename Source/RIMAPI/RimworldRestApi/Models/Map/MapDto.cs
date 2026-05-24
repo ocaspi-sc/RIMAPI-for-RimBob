@@ -128,6 +128,11 @@ namespace RIMAPI.Models
         public bool IsDoorway { get; set; }
         public int OpenRoofCount { get; set; }
         public List<int> ContainedBedsIds { get; set; }
+        public float? Impressiveness { get; set; }
+        public float? Beauty { get; set; }
+        public float? Cleanliness { get; set; }
+        public float? Space { get; set; }
+        public float? Wealth { get; set; }
     }
 
     public class MapRoomsDto

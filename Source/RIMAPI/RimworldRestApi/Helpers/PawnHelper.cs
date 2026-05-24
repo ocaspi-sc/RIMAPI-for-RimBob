@@ -129,6 +129,7 @@ namespace RIMAPI.Helpers
                     DrugsDesire = pawn.needs.drugsDesire?.CurLevel ?? 0,
                     SurroundingBeauty = pawn.needs.beauty?.CurLevel ?? 0,
                     FreshAir = pawn.needs.outdoors?.CurLevel ?? 0,
+                    MoodThoughts = GetMoodThoughts(pawn),
                     WorkInfo = new WorkInfoDto
                     {
                         Skills =
@@ -177,6 +178,33 @@ namespace RIMAPI.Helpers
             {
                 Core.LogApi.Error($"Error converting pawn to DTO - {ex.Message}");
                 return null;
+            }
+        }
+
+        public static List<MoodThoughtDto> GetMoodThoughts(Pawn pawn)
+        {
+            try
+            {
+                List<Thought> thoughts = new List<Thought>();
+                pawn.needs?.mood?.thoughts?.GetAllMoodThoughts(thoughts);
+
+                return thoughts
+                    .Where(thought => thought != null && thought.def != null)
+                    .Select(thought => new MoodThoughtDto
+                    {
+                        DefName = thought.def.defName,
+                        Label = thought.LabelCap.ToString(),
+                        MoodOffset = thought.MoodOffset(),
+                        StageIndex = thought.CurStageIndex,
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Core.LogApi.Warning(
+                    $"Error getting mood thoughts for pawn {pawn?.thingIDNumber}: {ex.Message}"
+                );
+                return new List<MoodThoughtDto>();
             }
         }
 

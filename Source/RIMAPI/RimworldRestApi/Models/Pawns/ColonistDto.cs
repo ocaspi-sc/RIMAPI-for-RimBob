@@ -55,6 +55,14 @@ namespace RIMAPI.Models
         public int OpinionAboutMe { get; set; }
     }
 
+    public class MoodThoughtDto
+    {
+        public string DefName { get; set; }
+        public string Label { get; set; }
+        public float MoodOffset { get; set; }
+        public int StageIndex { get; set; }
+    }
+
     public class MedicalInfoDto
     {
         public bool IsDead { get; set; }
