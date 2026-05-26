@@ -541,6 +541,11 @@ namespace RIMAPI.Services
                 }
             }
 
+            if (thingDef != null && !ValidateThingStuff(thingDef, stuff, out error))
+            {
+                return false;
+            }
+
             IntVec3 center = new IntVec3(request.Cell.X, 0, request.Cell.Z);
             if (!center.InBounds(map))
             {
@@ -557,6 +562,36 @@ namespace RIMAPI.Services
                 Center = center,
                 Rotation = new Rot4(request.Rotation)
             };
+            return true;
+        }
+
+        private static bool ValidateThingStuff(ThingDef thingDef, ThingDef stuff, out string error)
+        {
+            error = null;
+
+            if (!thingDef.MadeFromStuff)
+            {
+                if (stuff != null)
+                {
+                    error = $"validation failed: def_name '{thingDef.defName}' does not accept stuff_def_name";
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (stuff == null)
+            {
+                error = $"validation failed: stuff_def_name is required for def_name '{thingDef.defName}'";
+                return false;
+            }
+
+            if (!GenStuff.AllowedStuffsFor(thingDef).Contains(stuff))
+            {
+                error = $"validation failed: stuff_def_name '{stuff.defName}' is not valid for def_name '{thingDef.defName}'";
+                return false;
+            }
+
             return true;
         }
 
