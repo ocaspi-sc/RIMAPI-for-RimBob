@@ -7,11 +7,23 @@ using RIMAPI.Models.Map;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace RIMAPI.Helpers
 {
     public static class MapHelper
     {
+        private const int DefaultRegionMaxCost = 1000;
+        private const int MaxPathCostBatchSize = 4096;
+
+        private class ValidatedPathPair
+        {
+            public MapCellDto FromDto { get; set; }
+            public MapCellDto ToDto { get; set; }
+            public IntVec3 From { get; set; }
+            public IntVec3 To { get; set; }
+        }
+
         public static Thing GetThingOnMapById(int mapId, int id)
         {
             Map map = GetMapByID(mapId);
@@ -635,6 +647,537 @@ namespace RIMAPI.Helpers
                 }
             }
             return results;
+        }
+
+        public static ApiResult<MapReachResponseDto> GetMapReach(
+            int mapId,
+            int fromX,
+            int fromZ,
+            int toX,
+            int toZ,
+            string mode,
+            string peMode
+        )
+        {
+            Map map = GetMapByID(mapId);
+            if (map == null)
+            {
+                return ApiResult<MapReachResponseDto>.Fail($"Map not found: {mapId}");
+            }
+
+            MapCellDto fromDto = new MapCellDto { X = fromX, Z = fromZ };
+            MapCellDto toDto = new MapCellDto { X = toX, Z = toZ };
+            string validationError;
+            IntVec3 from;
+            IntVec3 to;
+            if (!TryValidateCellPair(map, fromDto, toDto, "request", out from, out to, out validationError))
+            {
+                return ApiResult<MapReachResponseDto>.Fail(validationError);
+            }
+
+            TraverseMode traverseMode;
+            string normalizedMode;
+            if (!TryParseTraverseMode(mode, out traverseMode, out normalizedMode))
+            {
+                return ValidationFail<MapReachResponseDto>($"unknown mode '{mode}'");
+            }
+
+            PathEndMode pathEndMode;
+            string normalizedPeMode;
+            if (!TryParsePathEndMode(peMode, out pathEndMode, out normalizedPeMode))
+            {
+                return ValidationFail<MapReachResponseDto>($"unknown peMode '{peMode}'");
+            }
+
+            TraverseParms traverseParms = BuildTraverseParms(traverseMode);
+            bool canReach = map.reachability.CanReach(
+                from,
+                new LocalTargetInfo(to),
+                pathEndMode,
+                traverseParms
+            );
+
+            return ApiResult<MapReachResponseDto>.Ok(
+                new MapReachResponseDto
+                {
+                    CanReach = canReach,
+                    From = fromDto,
+                    To = toDto,
+                    Mode = normalizedMode,
+                    PeMode = normalizedPeMode
+                }
+            );
+        }
+
+        public static ApiResult<MapPathCostResponseDto> GetMapPathCost(MapPathCostRequestDto request)
+        {
+            if (request == null)
+            {
+                return ValidationFail<MapPathCostResponseDto>("request body is required");
+            }
+
+            Map map = GetMapByID(request.MapId);
+            if (map == null)
+            {
+                return ApiResult<MapPathCostResponseDto>.Fail($"Map not found: {request.MapId}");
+            }
+
+            string tier;
+            if (!TryParsePathCostTier(request.Tier, out tier))
+            {
+                return ValidationFail<MapPathCostResponseDto>($"unknown tier '{request.Tier}'");
+            }
+
+            TraverseMode traverseMode;
+            string normalizedMode;
+            if (!TryParseTraverseMode(request.Mode, out traverseMode, out normalizedMode))
+            {
+                return ValidationFail<MapPathCostResponseDto>($"unknown mode '{request.Mode}'");
+            }
+
+            PathEndMode pathEndMode;
+            string normalizedPeMode;
+            if (!TryParsePathEndMode(request.PeMode, out pathEndMode, out normalizedPeMode))
+            {
+                return ValidationFail<MapPathCostResponseDto>($"unknown pe_mode '{request.PeMode}'");
+            }
+
+            int maxCost;
+            if (!TryResolveMaxCost(request.MaxCost, out maxCost, out string maxCostError))
+            {
+                return ValidationFail<MapPathCostResponseDto>(maxCostError);
+            }
+
+            IntVec3 from;
+            IntVec3 to;
+            if (!TryValidateCellPair(map, request.From, request.To, "request", out from, out to, out string validationError))
+            {
+                return ApiResult<MapPathCostResponseDto>.Fail(validationError);
+            }
+
+            TraverseParms traverseParms = BuildTraverseParms(traverseMode);
+            MapPathCostResultDto result = CalculatePathCost(
+                map,
+                request.From,
+                request.To,
+                from,
+                to,
+                tier,
+                traverseParms,
+                pathEndMode,
+                maxCost
+            );
+
+            return ApiResult<MapPathCostResponseDto>.Ok(
+                new MapPathCostResponseDto
+                {
+                    Reachable = result.Reachable,
+                    Cost = result.Cost,
+                    From = result.From,
+                    To = result.To,
+                    Tier = tier
+                }
+            );
+        }
+
+        public static ApiResult<MapPathCostBatchResponseDto> GetMapPathCostBatch(
+            MapPathCostBatchRequestDto request
+        )
+        {
+            if (request == null)
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>("request body is required");
+            }
+
+            Map map = GetMapByID(request.MapId);
+            if (map == null)
+            {
+                return ApiResult<MapPathCostBatchResponseDto>.Fail($"Map not found: {request.MapId}");
+            }
+
+            string tier;
+            if (!TryParsePathCostTier(request.Tier, out tier))
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>($"unknown tier '{request.Tier}'");
+            }
+
+            TraverseMode traverseMode;
+            string normalizedMode;
+            if (!TryParseTraverseMode(request.Mode, out traverseMode, out normalizedMode))
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>($"unknown mode '{request.Mode}'");
+            }
+
+            PathEndMode pathEndMode;
+            string normalizedPeMode;
+            if (!TryParsePathEndMode(request.PeMode, out pathEndMode, out normalizedPeMode))
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>($"unknown pe_mode '{request.PeMode}'");
+            }
+
+            int maxCost;
+            if (!TryResolveMaxCost(request.MaxCost, out maxCost, out string maxCostError))
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>(maxCostError);
+            }
+
+            if (request.Pairs == null)
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>("pairs are required");
+            }
+
+            if (request.Pairs.Count > MaxPathCostBatchSize)
+            {
+                return ValidationFail<MapPathCostBatchResponseDto>(
+                    $"pairs length {request.Pairs.Count} exceeds limit {MaxPathCostBatchSize}"
+                );
+            }
+
+            List<ValidatedPathPair> validatedPairs = new List<ValidatedPathPair>();
+            for (int i = 0; i < request.Pairs.Count; i++)
+            {
+                MapPathCostPairRequestDto pair = request.Pairs[i];
+                if (pair == null)
+                {
+                    return ValidationFail<MapPathCostBatchResponseDto>($"pairs[{i}] is required");
+                }
+
+                IntVec3 from;
+                IntVec3 to;
+                if (!TryValidateCellPair(map, pair.From, pair.To, $"pairs[{i}]", out from, out to, out string validationError))
+                {
+                    return ApiResult<MapPathCostBatchResponseDto>.Fail(validationError);
+                }
+
+                validatedPairs.Add(
+                    new ValidatedPathPair
+                    {
+                        FromDto = pair.From,
+                        ToDto = pair.To,
+                        From = from,
+                        To = to
+                    }
+                );
+            }
+
+            if (tier == "astar" && validatedPairs.Count > 64)
+            {
+                LogApi.Warning(
+                    $"[MapHelper] A* path-cost batch requested for {validatedPairs.Count} pairs; this is expensive."
+                );
+            }
+
+            TraverseParms traverseParms = BuildTraverseParms(traverseMode);
+            MapPathCostBatchResponseDto response = new MapPathCostBatchResponseDto();
+            foreach (ValidatedPathPair pair in validatedPairs)
+            {
+                response.Results.Add(
+                    CalculatePathCost(
+                        map,
+                        pair.FromDto,
+                        pair.ToDto,
+                        pair.From,
+                        pair.To,
+                        tier,
+                        traverseParms,
+                        pathEndMode,
+                        maxCost
+                    )
+                );
+            }
+
+            return ApiResult<MapPathCostBatchResponseDto>.Ok(response);
+        }
+
+        private static MapPathCostResultDto CalculatePathCost(
+            Map map,
+            MapCellDto fromDto,
+            MapCellDto toDto,
+            IntVec3 from,
+            IntVec3 to,
+            string tier,
+            TraverseParms traverseParms,
+            PathEndMode pathEndMode,
+            int maxCost
+        )
+        {
+            if (tier == "astar")
+            {
+                return CalculateAStarPathCost(map, fromDto, toDto, from, to, traverseParms, pathEndMode);
+            }
+
+            return CalculateRegionPathCost(map, fromDto, toDto, from, to, traverseParms, maxCost);
+        }
+
+        private static MapPathCostResultDto CalculateRegionPathCost(
+            Map map,
+            MapCellDto fromDto,
+            MapCellDto toDto,
+            IntVec3 from,
+            IntVec3 to,
+            TraverseParms traverseParms,
+            int maxCost
+        )
+        {
+            Region startRegion = map.regionGrid.GetValidRegionAt_NoRebuild(from);
+            Region endRegion = map.regionGrid.GetValidRegionAt_NoRebuild(to);
+            if (startRegion == null || endRegion == null)
+            {
+                return UnreachablePathCost(fromDto, toDto);
+            }
+
+            if (startRegion == endRegion)
+            {
+                return ReachablePathCost(fromDto, toDto, 0);
+            }
+
+            if (maxCost == 0)
+            {
+                return UnreachablePathCost(fromDto, toDto);
+            }
+
+            bool found = false;
+            int regionsTraversed = 0;
+            int maxRegions = maxCost == int.MaxValue ? int.MaxValue : Math.Max(1, maxCost + 1);
+
+            RegionTraverser.BreadthFirstTraverse(
+                startRegion,
+                (Region fromRegion, Region toRegion) => toRegion.Allows(traverseParms, false),
+                (Region region) =>
+                {
+                    if (region == startRegion)
+                    {
+                        return false;
+                    }
+
+                    regionsTraversed++;
+                    if (region == endRegion)
+                    {
+                        found = true;
+                        return true;
+                    }
+
+                    return regionsTraversed >= maxCost;
+                },
+                maxRegions,
+                RegionType.Set_Passable
+            );
+
+            return found
+                ? ReachablePathCost(fromDto, toDto, regionsTraversed)
+                : UnreachablePathCost(fromDto, toDto);
+        }
+
+        private static MapPathCostResultDto CalculateAStarPathCost(
+            Map map,
+            MapCellDto fromDto,
+            MapCellDto toDto,
+            IntVec3 from,
+            IntVec3 to,
+            TraverseParms traverseParms,
+            PathEndMode pathEndMode
+        )
+        {
+            PawnPath path = null;
+            try
+            {
+#if RIMWORLD_1_6
+                path = map.pathFinder.FindPathNow(
+                    from,
+                    new LocalTargetInfo(to),
+                    traverseParms,
+                    null,
+                    pathEndMode,
+                    null
+                );
+#else
+                path = map.pathFinder.FindPath(
+                    from,
+                    new LocalTargetInfo(to),
+                    traverseParms,
+                    pathEndMode,
+                    null
+                );
+#endif
+                if (path == null || !path.Found)
+                {
+                    return UnreachablePathCost(fromDto, toDto);
+                }
+
+                return ReachablePathCost(fromDto, toDto, (int)path.TotalCost);
+            }
+            finally
+            {
+                if (path != null && path != PawnPath.NotFound)
+                {
+                    path.Dispose();
+                }
+            }
+        }
+
+        private static MapPathCostResultDto ReachablePathCost(MapCellDto from, MapCellDto to, int cost)
+        {
+            return new MapPathCostResultDto
+            {
+                Reachable = true,
+                Cost = cost,
+                From = from,
+                To = to
+            };
+        }
+
+        private static MapPathCostResultDto UnreachablePathCost(MapCellDto from, MapCellDto to)
+        {
+            return new MapPathCostResultDto
+            {
+                Reachable = false,
+                Cost = -1,
+                From = from,
+                To = to
+            };
+        }
+
+        private static bool TryValidateCellPair(
+            Map map,
+            MapCellDto fromDto,
+            MapCellDto toDto,
+            string label,
+            out IntVec3 from,
+            out IntVec3 to,
+            out string error
+        )
+        {
+            from = IntVec3.Invalid;
+            to = IntVec3.Invalid;
+
+            if (fromDto == null)
+            {
+                error = $"validation: {label}.from is required";
+                return false;
+            }
+
+            if (toDto == null)
+            {
+                error = $"validation: {label}.to is required";
+                return false;
+            }
+
+            from = new IntVec3(fromDto.X, 0, fromDto.Z);
+            to = new IntVec3(toDto.X, 0, toDto.Z);
+
+            if (!from.InBounds(map))
+            {
+                error = $"validation: {label}.from ({fromDto.X}, {fromDto.Z}) is out of bounds";
+                return false;
+            }
+
+            if (!to.InBounds(map))
+            {
+                error = $"validation: {label}.to ({toDto.X}, {toDto.Z}) is out of bounds";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        private static bool TryParsePathCostTier(string value, out string tier)
+        {
+            string normalized = string.IsNullOrWhiteSpace(value)
+                ? "region"
+                : value.Trim().ToLowerInvariant();
+
+            switch (normalized)
+            {
+                case "region":
+                case "astar":
+                    tier = normalized;
+                    return true;
+                default:
+                    tier = null;
+                    return false;
+            }
+        }
+
+        private static bool TryParseTraverseMode(
+            string value,
+            out TraverseMode traverseMode,
+            out string normalizedMode
+        )
+        {
+            normalizedMode = string.IsNullOrWhiteSpace(value)
+                ? "pass_doors"
+                : value.Trim().ToLowerInvariant();
+
+            switch (normalizedMode)
+            {
+                case "pass_doors":
+                    traverseMode = TraverseMode.PassDoors;
+                    return true;
+                case "no_pass_closed_doors":
+                    traverseMode = TraverseMode.NoPassClosedDoors;
+                    return true;
+                case "pass_all_destroyable_things":
+                    traverseMode = TraverseMode.PassAllDestroyableThings;
+                    return true;
+                default:
+                    traverseMode = TraverseMode.PassDoors;
+                    return false;
+            }
+        }
+
+        private static bool TryParsePathEndMode(
+            string value,
+            out PathEndMode pathEndMode,
+            out string normalizedPeMode
+        )
+        {
+            normalizedPeMode = string.IsNullOrWhiteSpace(value)
+                ? "on_cell"
+                : value.Trim().ToLowerInvariant();
+
+            switch (normalizedPeMode)
+            {
+                case "on_cell":
+                    pathEndMode = PathEndMode.OnCell;
+                    return true;
+                case "touch":
+                    pathEndMode = PathEndMode.Touch;
+                    return true;
+                case "closest_touch":
+                    pathEndMode = PathEndMode.ClosestTouch;
+                    return true;
+                default:
+                    pathEndMode = PathEndMode.OnCell;
+                    return false;
+            }
+        }
+
+        private static bool TryResolveMaxCost(int? requestedMaxCost, out int maxCost, out string error)
+        {
+            maxCost = requestedMaxCost ?? DefaultRegionMaxCost;
+            if (maxCost < 0)
+            {
+                error = "max_cost cannot be negative";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        private static TraverseParms BuildTraverseParms(TraverseMode mode)
+        {
+#if RIMWORLD_1_6
+            return TraverseParms.For(mode, Danger.Deadly, false, false, false, false, false);
+#else
+            return TraverseParms.For(mode, Danger.Deadly, false, false, false);
+#endif
+        }
+
+        private static ApiResult<T> ValidationFail<T>(string message)
+        {
+            return ApiResult<T>.Fail($"validation: {message}");
         }
 
         public static OreDataDto GetOreData(int mapId)

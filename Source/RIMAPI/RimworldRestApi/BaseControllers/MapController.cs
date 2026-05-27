@@ -58,6 +58,48 @@ namespace RIMAPI.Controllers
             await context.SendJsonResponse(result);
         }
 
+        [Get("/api/v1/map/reach")]
+        [EndpointMetadata("Check default map reachability between two cells")]
+        public async Task GetMapReach(HttpListenerContext context)
+        {
+            int mapId = RequestParser.GetMapId(context);
+            int fromX = RequestParser.GetIntParameter(context, "from_x");
+            int fromZ = RequestParser.GetIntParameter(context, "from_z");
+            int toX = RequestParser.GetIntParameter(context, "to_x");
+            int toZ = RequestParser.GetIntParameter(context, "to_z");
+            string mode = GetOptionalQueryString(context, "mode", null, "pass_doors");
+            string peMode = GetOptionalQueryString(context, "peMode", "pe_mode", "on_cell");
+
+            ApiResult<MapReachResponseDto> result = _mapService.GetMapReach(
+                mapId,
+                fromX,
+                fromZ,
+                toX,
+                toZ,
+                mode,
+                peMode
+            );
+            await context.SendJsonResponse(result);
+        }
+
+        [Post("/api/v1/map/path-cost")]
+        [EndpointMetadata("Return region or A* path cost between two map cells")]
+        public async Task GetMapPathCost(HttpListenerContext context)
+        {
+            MapPathCostRequestDto body = await context.Request.ReadBodyAsync<MapPathCostRequestDto>();
+            ApiResult<MapPathCostResponseDto> result = _mapService.GetMapPathCost(body);
+            await context.SendJsonResponse(result);
+        }
+
+        [Post("/api/v1/map/path-cost/batch")]
+        [EndpointMetadata("Return path costs for a bounded batch of map cell pairs")]
+        public async Task GetMapPathCostBatch(HttpListenerContext context)
+        {
+            MapPathCostBatchRequestDto body = await context.Request.ReadBodyAsync<MapPathCostBatchRequestDto>();
+            ApiResult<MapPathCostBatchResponseDto> result = _mapService.GetMapPathCostBatch(body);
+            await context.SendJsonResponse(result);
+        }
+
         [Get("/api/v1/map/plants")]
         [EndpointMetadata("Get all plants (trees, bushes, crops) on the map")]
         public async Task GetMapPlants(HttpListenerContext context)
@@ -304,6 +346,22 @@ namespace RIMAPI.Controllers
             var body = await context.Request.ReadBodyAsync<UpdateStockpileRequestDto>();
             var result = _mapService.UpdateStockpile(body);
             await context.SendJsonResponse(result);
+        }
+
+        private static string GetOptionalQueryString(
+            HttpListenerContext context,
+            string primaryName,
+            string alternateName,
+            string defaultValue
+        )
+        {
+            string value = context.Request.QueryString[primaryName];
+            if (string.IsNullOrWhiteSpace(value) && !string.IsNullOrWhiteSpace(alternateName))
+            {
+                value = context.Request.QueryString[alternateName];
+            }
+
+            return string.IsNullOrWhiteSpace(value) ? defaultValue : value;
         }
     }
 }

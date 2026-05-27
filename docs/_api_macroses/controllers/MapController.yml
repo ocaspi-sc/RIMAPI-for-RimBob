@@ -302,6 +302,128 @@ desc: |-
     }
     ```
   method: GET
+/api/v1/map/reach:
+  desc: |-
+    Checks whether one map cell can reach another with the requested traversal and
+    path-end modes. This wraps RimWorld's map reachability cache and is intended
+    for spatial scoring, not pawn-specific job assignment.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request GET \
+    --url "http://localhost:8765/api/v1/map/reach?map_id=0&from_x=80&from_z=80&to_x=120&to_z=95&mode=pass_doors&peMode=on_cell"
+    ```
+  request: ''
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "can_reach": true,
+            "from": {"x": 80, "z": 80},
+            "to": {"x": 120, "z": 95},
+            "mode": "pass_doors",
+            "pe_mode": "on_cell"
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-27T12:00:00.0000000Z"
+    }
+    ```
+  method: GET
+/api/v1/map/path-cost:
+  desc: |-
+    Returns a single in-map path cost. `tier: region` uses a cheap region BFS
+    rank capped by `max_cost` regions. `tier: astar` uses RimWorld pathfinding
+    and returns the exact `PawnPath.TotalCost`; `max_cost` is ignored for A*.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url "http://localhost:8765/api/v1/map/path-cost" \
+    --header 'content-type: application/json' \
+    --data '{"map_id":0,"from":{"x":80,"z":80},"to":{"x":120,"z":95},"tier":"region","mode":"pass_doors","pe_mode":"on_cell","max_cost":1000}'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "from": {"x": 80, "z": 80},
+        "to": {"x": 120, "z": 95},
+        "tier": "region",
+        "mode": "pass_doors",
+        "pe_mode": "on_cell",
+        "max_cost": 1000
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "reachable": true,
+            "cost": 47,
+            "from": {"x": 80, "z": 80},
+            "to": {"x": 120, "z": 95},
+            "tier": "region"
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-27T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
+/api/v1/map/path-cost/batch:
+  desc: |-
+    Returns path costs for up to 4096 map cell pairs on one map. The whole batch
+    is rejected if any pair is malformed or out of bounds. A* batches above 64
+    pairs are allowed but logged as expensive.
+  curl: |-
+    **Example:**
+    ```bash
+    curl --request POST \
+    --url "http://localhost:8765/api/v1/map/path-cost/batch" \
+    --header 'content-type: application/json' \
+    --data '{"map_id":0,"tier":"region","mode":"pass_doors","pe_mode":"on_cell","max_cost":1000,"pairs":[{"from":{"x":80,"z":80},"to":{"x":120,"z":95}}]}'
+    ```
+  request: |-
+    **Request:**
+    ```json
+    {
+        "map_id": 0,
+        "tier": "region",
+        "mode": "pass_doors",
+        "pe_mode": "on_cell",
+        "max_cost": 1000,
+        "pairs": [
+            {"from": {"x": 80, "z": 80}, "to": {"x": 120, "z": 95}}
+        ]
+    }
+    ```
+  response: |-
+    **Response:**
+    ```json
+    {
+        "success": true,
+        "data": {
+            "results": [
+                {
+                    "reachable": true,
+                    "cost": 47,
+                    "from": {"x": 80, "z": 80},
+                    "to": {"x": 120, "z": 95}
+                }
+            ]
+        },
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2026-05-27T12:00:00.0000000Z"
+    }
+    ```
+  method: POST
 /api/v1/map/ore:
   desc: |-
     Returns a compressed dictionary of all ore deposits on the map.

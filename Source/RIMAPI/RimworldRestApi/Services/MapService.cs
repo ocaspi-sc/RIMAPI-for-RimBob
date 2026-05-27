@@ -87,6 +87,29 @@ namespace RIMAPI.Services
             return ApiResult<MapPowerInfoDto>.Ok(result);
         }
 
+        public ApiResult<MapReachResponseDto> GetMapReach(
+            int mapId,
+            int fromX,
+            int fromZ,
+            int toX,
+            int toZ,
+            string mode,
+            string peMode
+        )
+        {
+            return MapHelper.GetMapReach(mapId, fromX, fromZ, toX, toZ, mode, peMode);
+        }
+
+        public ApiResult<MapPathCostResponseDto> GetMapPathCost(MapPathCostRequestDto request)
+        {
+            return MapHelper.GetMapPathCost(request);
+        }
+
+        public ApiResult<MapPathCostBatchResponseDto> GetMapPathCostBatch(MapPathCostBatchRequestDto request)
+        {
+            return MapHelper.GetMapPathCostBatch(request);
+        }
+
         public ApiResult<OreDataDto> GetMapOre(int mapId)
         {
             var result = MapHelper.GetOreData(mapId);

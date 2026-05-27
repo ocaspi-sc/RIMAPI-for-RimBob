@@ -20,6 +20,66 @@ namespace RIMAPI.Models
         public float Temperature { get; set; }
     }
 
+    public class MapCellDto
+    {
+        public int X { get; set; }
+        public int Z { get; set; }
+    }
+
+    public class MapReachResponseDto
+    {
+        public bool CanReach { get; set; }
+        public MapCellDto From { get; set; }
+        public MapCellDto To { get; set; }
+        public string Mode { get; set; }
+        public string PeMode { get; set; }
+    }
+
+    public class MapPathCostRequestDto
+    {
+        public int MapId { get; set; }
+        public MapCellDto From { get; set; }
+        public MapCellDto To { get; set; }
+        public string Tier { get; set; }
+        public string Mode { get; set; }
+        public string PeMode { get; set; }
+        public int? MaxCost { get; set; }
+    }
+
+    public class MapPathCostPairRequestDto
+    {
+        public MapCellDto From { get; set; }
+        public MapCellDto To { get; set; }
+    }
+
+    public class MapPathCostBatchRequestDto
+    {
+        public int MapId { get; set; }
+        public string Tier { get; set; }
+        public string Mode { get; set; }
+        public string PeMode { get; set; }
+        public int? MaxCost { get; set; }
+        public List<MapPathCostPairRequestDto> Pairs { get; set; }
+    }
+
+    public class MapPathCostResultDto
+    {
+        public bool Reachable { get; set; }
+        public int Cost { get; set; }
+        public MapCellDto From { get; set; }
+        public MapCellDto To { get; set; }
+    }
+
+    public class MapPathCostResponseDto : MapPathCostResultDto
+    {
+        public string Tier { get; set; }
+    }
+
+    public class MapPathCostBatchResponseDto
+    {
+        public List<MapPathCostResultDto> Results { get; set; } = new List<MapPathCostResultDto>();
+    }
+
     public class MapPowerInfoDto
     {
         public int CurrentPower { get; set; }

@@ -10,6 +10,17 @@ namespace RIMAPI.Services
         ApiResult<List<MapDto>> GetMaps();
         ApiResult<MapPowerInfoDto> GetMapPowerInfo(int mapId);
         ApiResult<MapWeatherDto> GetWeather(int mapId);
+        ApiResult<MapReachResponseDto> GetMapReach(
+            int mapId,
+            int fromX,
+            int fromZ,
+            int toX,
+            int toZ,
+            string mode,
+            string peMode
+        );
+        ApiResult<MapPathCostResponseDto> GetMapPathCost(MapPathCostRequestDto request);
+        ApiResult<MapPathCostBatchResponseDto> GetMapPathCostBatch(MapPathCostBatchRequestDto request);
         ApiResult<List<AnimalDto>> GetMapAnimals(int mapId);
         ApiResult<List<ThingDto>> GetMapThings(int mapId);
         ApiResult<List<ThingDto>> GetMapPlants(int mapId);

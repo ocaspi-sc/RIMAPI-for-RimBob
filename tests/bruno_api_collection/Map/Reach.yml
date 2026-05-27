@@ -1,0 +1,16 @@
+info:
+  name: Reach
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/v1/map/reach?map_id=0&from_x=80&from_z=80&to_x=120&to_z=95&mode=pass_doors&peMode=on_cell"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

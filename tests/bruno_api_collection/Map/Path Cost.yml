@@ -1,0 +1,28 @@
+info:
+  name: Path Cost
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/v1/map/path-cost"
+  body:
+    type: json
+    data: |-
+      {
+        "map_id": 0,
+        "from": {"x": 80, "z": 80},
+        "to": {"x": 120, "z": 95},
+        "tier": "region",
+        "mode": "pass_doors",
+        "pe_mode": "on_cell",
+        "max_cost": 1000
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

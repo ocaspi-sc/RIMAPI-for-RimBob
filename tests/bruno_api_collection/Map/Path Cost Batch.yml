@@ -1,0 +1,36 @@
+info:
+  name: Path Cost Batch
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/v1/map/path-cost/batch"
+  body:
+    type: json
+    data: |-
+      {
+        "map_id": 0,
+        "tier": "region",
+        "mode": "pass_doors",
+        "pe_mode": "on_cell",
+        "max_cost": 1000,
+        "pairs": [
+          {
+            "from": {"x": 80, "z": 80},
+            "to": {"x": 120, "z": 95}
+          },
+          {
+            "from": {"x": 81, "z": 80},
+            "to": {"x": 120, "z": 95}
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
