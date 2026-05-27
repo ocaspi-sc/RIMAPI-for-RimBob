@@ -19,11 +19,7 @@ namespace RIMAPI.Helpers
             string seed = string.IsNullOrEmpty(request.WorldSeed) ? GenText.RandomSeedString() : request.WorldSeed.ToLower();
 
             Current.ProgramState = ProgramState.Entry;
-#if RIMWORLD_1_5
-            // Game.ClearCaches(); not implimented in v1.5
-#elif RIMWORLD_1_6
             Game.ClearCaches();
-#endif
             Current.Game = new Game();
             Current.Game.InitData = new GameInitData();
             Current.Game.Scenario = ScenarioDefOf.Crashlanded.scenario;
@@ -31,12 +27,7 @@ namespace RIMAPI.Helpers
             Current.Game.storyteller = new Storyteller(storytellerDef, difficultyDef);
             GameInitData initData = Find.GameInitData;
 
-#if RIMWORLD_1_5
-            // LandmarkDensity not implimented in v1.5
-            Current.Game.World = WorldGenerator.GenerateWorld(Mathf.Clamp(request.PlanetCoverage, 0, 1), seed, (OverallRainfall)request.OverallRainfall, (OverallTemperature)request.OverallTemperature, (OverallPopulation)request.OverallPopulation);
-#elif RIMWORLD_1_6
             Current.Game.World = WorldGenerator.GenerateWorld(Mathf.Clamp(request.PlanetCoverage, 0, 1), seed, (OverallRainfall)request.OverallRainfall, (OverallTemperature)request.OverallTemperature, (OverallPopulation)request.OverallPopulation, (LandmarkDensity)request.LandmarkDensity);
-#endif
             if (!string.IsNullOrEmpty(request.StartingTile) && request.StartingTile != "auto")
             {
                 if (int.TryParse(request.StartingTile, out int tileId))
@@ -46,11 +37,7 @@ namespace RIMAPI.Helpers
                         Log.Error($"[RIMAPI] Requested tile {tileId} is out of bounds.");
                         throw new Exception("Tile ID value is out of boundaries");
                     }
-#if RIMWORLD_1_5
-                    initData.startingTile = tileId;
-#elif RIMWORLD_1_6
                     initData.startingTile = Find.WorldGrid[tileId].tile;
-#endif
                 }
                 else
                 {
@@ -138,33 +125,18 @@ namespace RIMAPI.Helpers
             {
                 try
                 {
-#if RIMWORLD_1_5
-            if (WorldRendererUtility.WorldRenderedNow)
-            {
-                state.CurrentView = "World";
-            }
-            else if (Find.CurrentMap != null)
-            {
-                state.CurrentView = "Map";
-            }
-            else
-            {
-                state.CurrentView = "Unknown";
-            }
-#elif RIMWORLD_1_6
-            if (WorldRendererUtility.WorldRendered)
-            {
-                state.CurrentView = "World";
-            }
-            else if (Find.CurrentMap != null)
-            {
-                state.CurrentView = "Map";
-            }
-            else
-            {
-                state.CurrentView = "Unknown";
-            }
-#endif
+                    if (WorldRendererUtility.WorldRendered)
+                    {
+                        state.CurrentView = "World";
+                    }
+                    else if (Find.CurrentMap != null)
+                    {
+                        state.CurrentView = "Map";
+                    }
+                    else
+                    {
+                        state.CurrentView = "Unknown";
+                    }
                     state.IsPaused = Find.TickManager?.Paused ?? true;
                 }
                 catch

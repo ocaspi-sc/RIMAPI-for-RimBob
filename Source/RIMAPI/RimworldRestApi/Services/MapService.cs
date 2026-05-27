@@ -437,13 +437,7 @@ namespace RIMAPI.Services
                 {
                     try
                     {
-#if RIMWORLD_1_5
-                    ActiveDropPodInfo podInfo = new ActiveDropPodInfo();
-#elif RIMWORLD_1_6
-                    ActiveTransporterInfo podInfo = new ActiveTransporterInfo();
-#else
                         ActiveTransporterInfo podInfo = new ActiveTransporterInfo();
-#endif
                         podInfo.openDelay = request.OpenDelay ? 110 : 0;
                         podInfo.leaveSlag = true;
 

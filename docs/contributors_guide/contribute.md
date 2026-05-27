@@ -14,7 +14,7 @@ Thank you for your interest in contributing to RIMAPI! This guide provides every
 
 ### Prerequisites
 
-- A licensed copy of RimWorld (1.5 or later).
+- A licensed copy of RimWorld 1.6.
 - An IDE for .NET development:
     - **Visual Studio**: Install the `.NET desktop development` workload.
     - **VSCode**: Install the `C# Dev Kit` extension (`ms-dotnettools.csdevkit`).

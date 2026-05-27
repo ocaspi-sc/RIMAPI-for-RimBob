@@ -201,12 +201,7 @@ namespace RIMAPI.Helpers
 
         public static int GetMapTileId(Map map)
         {
-#if RIMWORLD_1_5
-            return map.Tile;
-#elif RIMWORLD_1_6
             return map.Tile.tileId;
-#endif
-            throw new Exception("Failed to get GetMapTileId for this rimworld version.");
         }
 
         public static List<AnimalDto> GetMapAnimals(int mapId)
@@ -403,34 +398,8 @@ namespace RIMAPI.Helpers
 
         public static MapRoomsDto GetRooms(Map map)
         {
-            var mapRooms = new MapRoomsDto();
-#if RIMWORLD_1_5
-            List<Room> allRooms = map.regionGrid.allRooms;
-            mapRooms = new MapRoomsDto
-            {
-                Rooms = allRooms
-                    .Select(s => new RoomDto
-                    {
-                        Id = s.ID,
-                        RoleLabel = s.GetRoomRoleLabel(),
-                        Temperature = s.Temperature,
-                        CellsCount = s.CellCount,
-                        TouchesMapEdge = s.TouchesMapEdge,
-                        IsPrisonCell = s.IsPrisonCell,
-                        IsDoorway = s.IsDoorway,
-                        ContainedBedsIds = s.ContainedBeds.Select(b => b.thingIDNumber).ToList(),
-                        OpenRoofCount = s.OpenRoofCount,
-                        Impressiveness = ReadRoomStat(s, RoomStatDefOf.Impressiveness),
-                        Beauty = ReadRoomStat(s, RoomStatDefOf.Beauty),
-                        Cleanliness = ReadRoomStat(s, RoomStatDefOf.Cleanliness),
-                        Space = ReadRoomStat(s, RoomStatDefOf.Space),
-                        Wealth = ReadRoomStat(s, RoomStatDefOf.Wealth),
-                    })
-                    .ToList(),
-            };
-#elif RIMWORLD_1_6
             var allRooms = map.regionGrid.AllRooms;
-            mapRooms = new MapRoomsDto
+            var mapRooms = new MapRoomsDto
             {
                 Rooms = allRooms
                     .Select(s => new RoomDto
@@ -452,7 +421,6 @@ namespace RIMAPI.Helpers
                     })
                     .ToList(),
             };
-#endif
             return mapRooms;
         }
 
@@ -981,7 +949,6 @@ namespace RIMAPI.Helpers
             PawnPath path = null;
             try
             {
-#if RIMWORLD_1_6
                 path = map.pathFinder.FindPathNow(
                     from,
                     new LocalTargetInfo(to),
@@ -990,15 +957,6 @@ namespace RIMAPI.Helpers
                     pathEndMode,
                     null
                 );
-#else
-                path = map.pathFinder.FindPath(
-                    from,
-                    new LocalTargetInfo(to),
-                    traverseParms,
-                    pathEndMode,
-                    null
-                );
-#endif
                 if (path == null || !path.Found)
                 {
                     return UnreachablePathCost(fromDto, toDto);
@@ -1168,11 +1126,7 @@ namespace RIMAPI.Helpers
 
         private static TraverseParms BuildTraverseParms(TraverseMode mode)
         {
-#if RIMWORLD_1_6
             return TraverseParms.For(mode, Danger.Deadly, false, false, false, false, false);
-#else
-            return TraverseParms.For(mode, Danger.Deadly, false, false, false);
-#endif
         }
 
         private static ApiResult<T> ValidationFail<T>(string message)

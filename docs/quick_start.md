@@ -4,7 +4,7 @@ Welcome to RIMAPI! This guide will help you install the mod, configure it, and m
 
 ## 1. Prerequisites
 
-- RimWorld version 1.5 or later.
+- RimWorld version 1.6.
 - The **[Harmony](https://steamcommunity.com/workshop/filedetails/?id=2009463077)** mod must be installed and enabled.
 - A basic understanding of what a REST API is.
 

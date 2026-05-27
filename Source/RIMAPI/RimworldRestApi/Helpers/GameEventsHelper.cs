@@ -24,12 +24,7 @@ namespace RIMAPI.Helpers
                         Name = quest.name,
                         Description = quest.description.ToString(),
                         State = quest.State.ToString(),
-#if RIMWORLD_1_5
-                        ExpiryHours =
-                            GameTypesHelper.TicksToDays(quest.ticksUntilAcceptanceExpiry) * 24,
-#elif RIMWORLD_1_6
                         ExpiryHours = GameTypesHelper.TicksToDays(quest.TicksUntilExpiry) * 24,
-#endif
                         Reward = GetQuestRewardString(quest),
                     })
             );
@@ -44,12 +39,7 @@ namespace RIMAPI.Helpers
                         Name = quest.name,
                         Description = quest.description.ToString(),
                         State = quest.State.ToString(),
-#if RIMWORLD_1_5
-                        ExpiryHours =
-                            GameTypesHelper.TicksToDays(quest.ticksUntilAcceptanceExpiry) * 24,
-#elif RIMWORLD_1_6
                         ExpiryHours = GameTypesHelper.TicksToDays(quest.TicksUntilExpiry) * 24,
-#endif
                         Reward = GetQuestRewardString(quest),
                     })
             );

@@ -118,7 +118,7 @@ desc: Этот контроллер обрабатывает общие игро
     {
         "success": true,
         "data": {
-            "rim_world_version": "1.5.4243",
+            "rim_world_version": "1.6.4633",
             "mod_version": "1.2.0",
             "api_version": "v1"
         },

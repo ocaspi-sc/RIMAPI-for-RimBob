@@ -520,12 +520,7 @@ namespace RIMAPI.Services
 
         public static int GetMapTileId(Map map)
         {
-#if RIMWORLD_1_5
-            return map.Tile;
-#elif RIMWORLD_1_6
             return map.Tile.tileId;
-#endif
-            throw new Exception("Failed to get GetMapTileId for this rimworld version.");
         }
 
         public ApiResult<MapTimeDto> GetCurrentMapDatetime()
